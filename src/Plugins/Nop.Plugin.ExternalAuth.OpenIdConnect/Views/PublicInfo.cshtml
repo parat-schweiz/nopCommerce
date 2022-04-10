@@ -1,0 +1,9 @@
+﻿@{
+    Layout = ""; 
+}
+<link rel="stylesheet" href="~/Plugins/ExternalAuth.OpenIdConnect/Content/oidcstyles.css" />
+<div class="oidc-login-block">
+    <div class="buttons">
+        <a asp-controller="openidconnectauthentication" asp-action="login" asp-route-returnurl="@Context.Request.Query["ReturnUrl"]" class="oidc-btn"></a>
+    </div>
+</div>

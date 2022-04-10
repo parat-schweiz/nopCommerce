@@ -1,0 +1,11 @@
+﻿{
+  "Group": "ExternalAuth methods",
+  "FriendlyName": "OpenIdConnect authentication",
+  "SystemName": "ExternalAuth.OpenIdConnect",
+  "Version": "0.01",
+  "SupportedVersions": [ "4.50", "4.60" ],
+  "Author": "nopCommerce team",
+  "DisplayOrder": 5,
+  "FileName": "Nop.Plugin.ExternalAuth.OpenIdConnect.dll",
+  "Description": "This plugin enables OpenIdConnect authentication"
+}
