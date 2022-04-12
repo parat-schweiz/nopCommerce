@@ -17,8 +17,6 @@ WORKDIR /src/Plugins/Nop.Plugin.DiscountRules.CustomerRoles
 RUN dotnet build Nop.Plugin.DiscountRules.CustomerRoles.csproj -c Release
 WORKDIR /src/Plugins/Nop.Plugin.ExchangeRate.EcbExchange
 RUN dotnet build Nop.Plugin.ExchangeRate.EcbExchange.csproj -c Release
-WORKDIR /src/Plugins/Nop.Plugin.ExternalAuth.Facebook
-RUN dotnet build Nop.Plugin.ExternalAuth.Facebook.csproj -c Release
 WORKDIR /src/Plugins/Nop.Plugin.Misc.Sendinblue
 RUN dotnet build Nop.Plugin.Misc.Sendinblue.csproj -c Release
 WORKDIR /src/Plugins/Nop.Plugin.Misc.WebApi.Frontend
@@ -39,20 +37,20 @@ WORKDIR /src/Plugins/Nop.Plugin.Pickup.PickupInStore
 RUN dotnet build Nop.Plugin.Pickup.PickupInStore.csproj -c Release
 WORKDIR /src/Plugins/Nop.Plugin.Shipping.FixedByWeightByTotal
 RUN dotnet build Nop.Plugin.Shipping.FixedByWeightByTotal.csproj -c Release
-WORKDIR /src/Plugins/Nop.Plugin.Shipping.UPS
-RUN dotnet build Nop.Plugin.Shipping.UPS.csproj -c Release
 WORKDIR /src/Plugins/Nop.Plugin.Tax.Avalara
 RUN dotnet build Nop.Plugin.Tax.Avalara.csproj -c Release
 WORKDIR /src/Plugins/Nop.Plugin.Tax.FixedOrByCountryStateZip
 RUN dotnet build Nop.Plugin.Tax.FixedOrByCountryStateZip.csproj -c Release
-WORKDIR /src/Plugins/Nop.Plugin.Widgets.FacebookPixel
-RUN dotnet build Nop.Plugin.Widgets.FacebookPixel.csproj -c Release
-WORKDIR /src/Plugins/Nop.Plugin.Widgets.GoogleAnalytics
-RUN dotnet build Nop.Plugin.Widgets.GoogleAnalytics.csproj -c Release
 WORKDIR /src/Plugins/Nop.Plugin.Widgets.NivoSlider
 RUN dotnet build Nop.Plugin.Widgets.NivoSlider.csproj -c Release
 WORKDIR /src/Plugins/Nop.Plugin.Widgets.What3words
 RUN dotnet build Nop.Plugin.Widgets.What3words.csproj -c Release
+WORKDIR /src/Plugins/Nop.Plugin.ExternalAuth.OpenIdConnect
+RUN dotnet build Nop.Plugin.ExternalAuth.OpenIdConnect.csproj -c Release
+WORKDIR /src/Plugins/Nop.Plugin.Payments.StripeCheckout
+RUN dotnet build Nop.Plugin.Payments.StripeCheckout.csproj -c Release
+WORKDIR /src/Plugins/Nop.Plugin.Payments.Quaestur
+RUN dotnet build Nop.Plugin.Payments.Quaestur.csproj -c Release
 
 # publish project
 WORKDIR /src/Presentation/Nop.Web   
