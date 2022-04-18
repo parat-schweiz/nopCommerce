@@ -1,0 +1,11 @@
+﻿{
+  "Group": "Payment methods",
+  "FriendlyName": "Quaestur",
+  "SystemName": "Payments.Quaestur",
+  "Version": "0.02",
+  "SupportedVersions": [ "4.60" ],
+  "Author": "Exception Code Labs",
+  "DisplayOrder": 0,
+  "FileName": "Nop.Plugin.Payments.Quaestur.dll",
+  "Description": "This plugin allows paying with Quaestur"
+}
