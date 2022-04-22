@@ -10,8 +10,8 @@ using Nop.Core;
 using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
-using Nop.Plugin.Payments.Quaestur.Services;
-using Nop.Plugin.Payments.Quaestur.Components;
+using Nop.Plugin.Payments.StripeCheckout.Services;
+using Nop.Plugin.Payments.StripeCheckout.Components;
 using Nop.Services.Logging;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
@@ -24,12 +24,12 @@ using Nop.Services.Payments;
 using Nop.Services.Plugins;
 using Nop.Services.Tax;
 
-namespace Nop.Plugin.Payments.Quaestur
+namespace Nop.Plugin.Payments.StripeCheckout
 {
     /// <summary>
-    /// Quaestur payment processor
+    /// StripeCheckout payment processor
     /// </summary>
-    public class QuaesturPaymentProcessor : BasePlugin, IPaymentMethod
+    public class StripeCheckoutPaymentProcessor : BasePlugin, IPaymentMethod
     {
 		#region Fields
 
@@ -50,14 +50,14 @@ namespace Nop.Plugin.Payments.Quaestur
 		private readonly ITaxService _taxService;
 		private readonly IWebHelper _webHelper;
 		private readonly ILogger _logger;
-		private readonly QuaesturHttpClient _quaesturHttpClient;
-		private readonly QuaesturPaymentSettings _quaesturPaymentSettings;
+		private readonly StripeCheckoutHttpClient _stripeCheckoutHttpClient;
+		private readonly StripeCheckoutPaymentSettings _stripeCheckoutPaymentSettings;
 
 		#endregion
 
 		#region Ctor
 
-		public QuaesturPaymentProcessor(CurrencySettings currencySettings,
+		public StripeCheckoutPaymentProcessor(CurrencySettings currencySettings,
 			IAddressService addressService,
 			ICheckoutAttributeParser checkoutAttributeParser,
 			ICountryService countryService,
@@ -74,8 +74,8 @@ namespace Nop.Plugin.Payments.Quaestur
 			ITaxService taxService,
 			IWebHelper webHelper,
 			ILogger logger,
-			QuaesturHttpClient quaesturHttpClient,
-			QuaesturPaymentSettings quaesturPaymentSettings)
+			StripeCheckoutHttpClient stripeCheckoutHttpClient,
+			StripeCheckoutPaymentSettings stripeCheckoutPaymentSettings)
 		{
 			_currencySettings = currencySettings;
 			_addressService = addressService;
@@ -94,8 +94,8 @@ namespace Nop.Plugin.Payments.Quaestur
 			_taxService = taxService;
 			_webHelper = webHelper;
 			_logger = logger;
-			_quaesturHttpClient = quaesturHttpClient;
-			_quaesturPaymentSettings = quaesturPaymentSettings;
+			_stripeCheckoutHttpClient = stripeCheckoutHttpClient;
+			_stripeCheckoutPaymentSettings = stripeCheckoutPaymentSettings;
 		}
 
 		#endregion
@@ -126,28 +126,24 @@ namespace Nop.Plugin.Payments.Quaestur
 			var reason = string.Format(
 				"Order No {0}",
 				postProcessPaymentRequest.Order.CustomOrderNumber);
-			var url = string.Format(
-				"{0}orderdetails/{1}",
-				_webHelper.GetStoreLocation(),
-				postProcessPaymentRequest.Order.CustomOrderNumber);
 
 			try
 			{
-				var transactionId = await _quaesturHttpClient.PrepareTransaction(
-					postProcessPaymentRequest.Order.OrderGuid, amount, reason, url);
+				var currency = await _currencyService.GetCurrencyByIdAsync(_currencySettings.PrimaryStoreCurrencyId);
+				var currencyCode = currency?.CurrencyCode?.ToLowerInvariant() ?? "usd";
+				var result = await _stripeCheckoutHttpClient.CreateSession(
+					postProcessPaymentRequest.Order.OrderGuid, currencyCode, amount, reason);
+				var sessionId = result.Item1;
+				var url = result.Item2;
 
-				await _genericAttributeService.SaveAttributeAsync<string>(postProcessPaymentRequest.Order, QuaesturHelper.OrderAttributeQuaesturTransactionId, transactionId);
+				await _genericAttributeService.SaveAttributeAsync<string>(postProcessPaymentRequest.Order, StripeCheckoutHelper.OrderAttributeStripeCheckoutSessionId, sessionId);
 
-				var quaesturUrl = string.Format(
-					"{0}/payments/show/{1}",
-					_quaesturPaymentSettings.ApiUrl,
-					transactionId);
-				_httpContextAccessor.HttpContext.Response.Redirect(quaesturUrl);
+				_httpContextAccessor.HttpContext.Response.Redirect(url);
 			}
-			catch (ApiException exception)
+			catch (Exception exception)
 			{
 				var errorString = string.Format(
-					"Faild to create Quaestur transaction for order {0}. {1}",
+					"Faild to create StripeCheckout session for order {0}. {1}",
 					postProcessPaymentRequest.Order.Id,
 					exception.Message);
 
@@ -305,7 +301,7 @@ namespace Nop.Plugin.Payments.Quaestur
         /// </summary>
         public override string GetConfigurationPageUrl()
         {
-            return $"{_webHelper.GetStoreLocation()}Admin/PaymentQuaestur/Configure";
+            return $"{_webHelper.GetStoreLocation()}Admin/PaymentStripeCheckout/Configure";
         }
         
         /// <summary>
@@ -314,7 +310,7 @@ namespace Nop.Plugin.Payments.Quaestur
         /// <returns>View component type</returns>
         public Type GetPublicViewComponent()
         {
-            return typeof(PaymentQuaesturViewComponent);
+            return typeof(PaymentStripeCheckoutViewComponent);
         }
 
         /// <summary>
@@ -323,7 +319,7 @@ namespace Nop.Plugin.Payments.Quaestur
         /// <returns>View component name</returns>
         public string GetPublicViewComponentName()
         {
-            return "PaymentQuaestur";
+            return "PaymentStripeCheckout";
         }
 
         /// <summary>
@@ -333,20 +329,16 @@ namespace Nop.Plugin.Payments.Quaestur
         public override async Task InstallAsync()
         {
             //settings
-            await _settingService.SaveSettingAsync(new QuaesturPaymentSettings());
+            await _settingService.SaveSettingAsync(new StripeCheckoutPaymentSettings());
 
             //locales
             await _localizationService.AddOrUpdateLocaleResourceAsync(new Dictionary<string, string>
             {
-                ["Plugins.Payments.Quaestur.Fields.RedirectionTip"] = "You will be redirected to Quaestur site to complete the order.",
-                ["Plugins.Payments.Quaestur.Fields.ApiUrl"] = "API URL",
-                ["Plugins.Payments.Quaestur.Fields.ApiUrl.Hint"] = "Specify the URL of the Quaestur API.",
-                ["Plugins.Payments.Quaestur.Fields.ApiClientId"] = "API Client ID",
-                ["Plugins.Payments.Quaestur.Fields.ApiClientId.Hint"] = "Specify the client ID for the API.",
-                ["Plugins.Payments.Quaestur.Fields.ApiClientSecret"] = "API Client Secret",
-                ["Plugins.Payments.Quaestur.Fields.ApiClientSecret.Hint"] = "Specify the client secret for the API",
-                ["Plugins.Payments.Quaestur.Instructions"] = @"Configure the Quaestur API.",
-                ["Plugins.Payments.Quaestur.PaymentMethodDescription"] = "You will be redirected to Quaestur site to complete the payment"
+                ["Plugins.Payments.StripeCheckout.Fields.RedirectionTip"] = "You will be redirected to Stripe.com site to complete the order.",
+                ["Plugins.Payments.StripeCheckout.Fields.ApiSecretKey"] = "API Secret Key",
+                ["Plugins.Payments.StripeCheckout.Fields.ApiSecretKey.Hint"] = "Specify the secret key for the API",
+                ["Plugins.Payments.StripeCheckout.Instructions"] = @"Configure the StripeCheckout API.",
+                ["Plugins.Payments.StripeCheckout.PaymentMethodDescription"] = "You will be redirected to Stripe.com site to complete the payment"
             });
 
             await base.InstallAsync();
@@ -359,10 +351,10 @@ namespace Nop.Plugin.Payments.Quaestur
         public override async Task UninstallAsync()
         {
             //settings
-            await _settingService.DeleteSettingAsync<QuaesturPaymentSettings>();
+            await _settingService.DeleteSettingAsync<StripeCheckoutPaymentSettings>();
 
             //locales
-            await _localizationService.DeleteLocaleResourcesAsync("Plugins.Payments.Quaestur");
+            await _localizationService.DeleteLocaleResourcesAsync("Plugins.Payments.StripeCheckout");
 
             await base.UninstallAsync();
         }
@@ -373,7 +365,7 @@ namespace Nop.Plugin.Payments.Quaestur
         /// <returns>A task that represents the asynchronous operation</returns>
         public async Task<string> GetPaymentMethodDescriptionAsync()
         {
-            return await _localizationService.GetResourceAsync("Plugins.Payments.Quaestur.PaymentMethodDescription");
+            return await _localizationService.GetResourceAsync("Plugins.Payments.StripeCheckout.PaymentMethodDescription");
         }
 
         #endregion

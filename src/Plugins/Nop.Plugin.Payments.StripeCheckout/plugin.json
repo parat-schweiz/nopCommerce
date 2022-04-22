@@ -1,0 +1,11 @@
+﻿{
+  "Group": "Payment methods",
+  "FriendlyName": "Stripe Checkout",
+  "SystemName": "Payments.StripeCheckout",
+  "Version": "0.02",
+  "SupportedVersions": [ "4.60" ],
+  "Author": "Exception Code Labs",
+  "DisplayOrder": 0,
+  "FileName": "Nop.Plugin.Payments.StripeCheckout.dll",
+  "Description": "This plugin allows paying with Stripe Checkout"
+}
