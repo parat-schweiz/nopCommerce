@@ -1,0 +1,31 @@
+﻿@model Nop.Plugin.Payments.StripeCheckout.Models.ConfigurationModel
+@inject Nop.Core.IWebHelper webHelper
+@{
+    Layout = "_ConfigurePlugin";
+}
+
+@await Component.InvokeAsync("StoreScopeConfiguration")
+
+<form asp-controller="PaymentStripeCheckout" asp-action="Configure" method="post">
+    <div class="cards-group">
+        <div class="card card-default">
+            <div class="card-body">
+                @Html.Raw(T("Plugins.Payments.StripeCheckout.Instructions", $"{webHelper.GetStoreLocation()}Plugins/PaymentStripeCheckout/PDTHandler"))
+                <div class="form-group row">
+					<div class="col-md-3">
+						<nop-label asp-for="ApiSecretKey" />
+					</div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="ApiSecretKey" />
+                        <span asp-validation-for="ApiSecretKey"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-9 offset-md-3">
+                        <button type="submit" name="save" class="btn btn-primary">@T("Admin.Common.Save")</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
